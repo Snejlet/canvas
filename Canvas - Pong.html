@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<canvas id="board" width="400" height="400"></canvas>
+
+<script>
+
+    var paddle1 = {x:10,y:200,vx:0,vy:0,w:10,h:40,
+    tick:paddleTick,
+    draw:paddleDraw,
+    handleKeyDown: paddleKeyDown,
+    handleKeyUp: paddleKeyUp,
+    downKey:83,
+    upKey:87
+    };
+
+    var paddle2 = {x:390,y:200,vx:0,vy:0,w:10,h:40,
+    tick:paddleTick,
+    draw:paddleDraw,
+    handleKeyDown:paddleKeyDown,
+    handleKeyUp: paddleKeyUp,
+    downKey:40,
+    upKey:38
+    };
+
+    var ball = {x:200,y:200,r:20,vx:1,vy:1.5,
+    tick:ballTick,
+    draw:ballDraw
+    };
+
+    var score1 = {x: 20, y: 10, score: 0,
+        draw: scoreDraw
+    };
+
+    var score2 = {x:380, y:10, score:0,
+        draw: scoreDraw
+    };
+
+    function drawAll() {
+        var canvas = document.getElementById("board");
+        var ctx = canvas.getContext("2d");
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        paddle1.draw(ctx);
+        paddle2.draw(ctx);
+        ball.draw(ctx);
+        score1.draw(ctx);
+        score2.draw(ctx);
+    }
+
+    function tickAll() {
+
+        var canvas = document.getElementById("board");
+        paddle1.tick(canvas);
+        paddle2.tick(canvas);
+        ball.tick(canvas);
+        drawAll();
+
+    }
+
+    function paddleDraw(ctx) {
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+    }
+
+    function ballDraw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, 2*Math.PI);
+        ctx.fill();
+    }
+
+    function scoreDraw(ctx) {
+        ctx.fillText("" + this.score, this.x, this.y)
+    }
+
+    function paddleTick(canvas) {
+
+        this.y += this.vy;
+        if (this.y < 0-this.h) {this.y= canvas.height;}
+        if (this.y > canvas.height) {this.y= 0- this.h;}
+    }
+
+    function ballTick(canvas) {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.y < this.r) {this.vy = Math.abs(this.vy);}
+        if (this.y > (canvas.height - this.r)) {this.vy = -Math.abs(this.vy);}
+
+        if (this.x < 0 - this.r) {
+            this.x = 200;
+            this.y = 200;
+            this.vx = 1;
+            this.vy = 1.5;
+            this.vx = Math.abs(this.vx);
+            score2.score++;
+        }
+        if (this.x > (canvas.width + this.r)) {
+            this.x = 200;
+            this.y = 200;
+            this.vx = 1;
+            this.vy = 1.5;
+            this.vx = -Math.abs(this.vx);
+            score1.score++;
+        }
+
+        if (checkCollision(ball, paddle2)) {
+            this.vx = -Math.abs(this.vx);
+            this.vx = (this.vx + -0.5);
+            this.vy = (this.vy + -0.5);
+            console.log(this.vy, this.vx);
+        }
+        if (checkCollision(ball, paddle1)) {
+            this.vx = Math.abs(this.vx);
+            this.vx = (this.vx + 0.5);
+            this.vy = (this.vy + 0.5);
+            console.log(this.vy, this.vx);
+        }
+    }
+
+    function checkCollision(ball, paddle) {
+        var bx = ball.x;
+        var by = ball.y;
+        var r = ball.r;
+        var px = paddle.x;
+        var py = paddle.y;
+        var w = paddle.w;
+        var h = paddle.h;
+
+        if ((bx > px - r) && (bx < px + w + r)) {
+            if ((by > py -r)&& (by < (py + h + r))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function paddleKeyDown(key) {
+        if (key == this.downKey) {this.vy = 5;}
+        if (key == this.upKey) {this.vy = -5;}
+    }
+
+    function paddleKeyUp(key) {
+        if (key == this.downKey) {this.vy = 0;}
+        if (key == this.upKey) {this.vy = 0;}
+    }
+
+    window.addEventListener("keydown",function(event){
+        console.log(event.keyCode);
+        var key = event.keyCode;
+        paddle1.handleKeyDown(key);
+        paddle2.handleKeyDown(key);
+    });
+
+    window.addEventListener("keyup",function(event){
+        console.log(event.keyCode);
+        var key = event.keyCode;
+        paddle1.handleKeyUp(key);
+        paddle2.handleKeyUp(key);
+    })
+
+
+    setInterval(tickAll,1000/60);
+    tickAll();
+
+</script>
+
+</body>
+</html>
